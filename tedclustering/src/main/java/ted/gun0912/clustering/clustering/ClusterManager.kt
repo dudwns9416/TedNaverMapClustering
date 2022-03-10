@@ -1,8 +1,11 @@
 package ted.gun0912.clustering.clustering
 
 import android.os.AsyncTask
-import android.os.Build
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import ted.gun0912.clustering.BaseBuilder
 import ted.gun0912.clustering.MarkerManager
 import ted.gun0912.clustering.TedMap
@@ -31,6 +34,7 @@ class ClusterManager<Clustering, C : TedClusterItem, RealMarker, Marker : TedMar
     private var mRenderer: ClusterRenderer<Clustering, C, RealMarker, Marker, Map, ImageDescriptor>
     private var previousCameraPosition: TedCameraPosition? = null
     private var mClusterTask: ClusterTask = ClusterTask()
+    private var mClusterCoroutine: Job = Job()
 
     var algorithm: Algorithm<C>?
         get() = mAlgorithm
@@ -110,14 +114,10 @@ class ClusterManager<Clustering, C : TedClusterItem, RealMarker, Marker : TedMar
      */
     fun cluster() {
         internalLockSafe {
-            // Attempt to cancel the in-flight request.
-            mClusterTask.cancel(true)
-            mClusterTask = ClusterTask()
-            val zoom = map.getCameraPosition().zoom
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                mClusterTask.execute(zoom)
-            } else {
-                mClusterTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, zoom)
+            mClusterCoroutine.cancel()
+            mClusterCoroutine = CoroutineScope(Dispatchers.IO).launch {
+                val zoom = map.getCameraPosition().zoom
+                execute(zoom)
             }
         }
 
@@ -144,6 +144,17 @@ class ClusterManager<Clustering, C : TedClusterItem, RealMarker, Marker : TedMar
     /**
      * Runs the clustering algorithm in a background thread, then re-paints when results come back.
      */
+
+    private fun execute(vararg zoom: Double?) {
+        mAlgorithmLock.readLock().lock()
+        try {
+            val clusters = mAlgorithm.getClusters(zoom[0]!!)
+            mRenderer.onClustersChanged(clusters)
+        } finally {
+            mAlgorithmLock.readLock().unlock()
+        }
+    }
+
     private inner class ClusterTask : AsyncTask<Double, Void, Set<Cluster<C>>>() {
         override fun doInBackground(vararg zoom: Double?): Set<Cluster<C>> {
             mAlgorithmLock.readLock().lock()

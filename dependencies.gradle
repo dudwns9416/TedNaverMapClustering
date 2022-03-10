@@ -24,5 +24,8 @@ ext {
                     'annotation': 'com.github.bumptech.glide:compiler:4.9.0',
             ],
 
+             'coroutine' : [
+                    'core': 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+            ]
     ]
 }

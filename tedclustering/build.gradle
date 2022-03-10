@@ -24,6 +24,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin}"
     implementation deps.androidx.appcompat
+    implementation deps.coroutine.core
 }
 
 apply plugin: "com.vanniktech.maven.publish"
