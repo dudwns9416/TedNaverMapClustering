@@ -21,7 +21,8 @@ abstract class BaseBuilder<Clustering, C : TedClusterItem, RealMarker, TM : TedM
     internal var items: Collection<C>? = null,
     internal var item: C? = null,
     private var markerMaker: ((clusterItem: C) -> RealMarker)? = null,
-    internal var clusterMaker: ((cluster: Cluster<C>) -> View)? = null
+    internal var clusterMaker: ((cluster: Cluster<C>) -> View)? = null,
+    internal var clusterEndedListener: (() -> Unit)? = null,
 ) {
 
     fun customCluster(clusterMaker: ((cluster: Cluster<C>) -> View)) =
@@ -50,6 +51,9 @@ abstract class BaseBuilder<Clustering, C : TedClusterItem, RealMarker, TM : TedM
 
     fun clusterAddedListener(listener: ((cluster: Cluster<C>, TM) -> Unit)) =
         apply { this.clusterAddedListener = listener }
+
+    fun clusterEndedListener(listener: () -> Unit) =
+        apply { this.clusterEndedListener = listener }
 
     fun clusterText(action: ((Int) -> String)) =
         apply { this.clusterText = action }

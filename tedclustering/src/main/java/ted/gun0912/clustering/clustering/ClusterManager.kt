@@ -35,6 +35,7 @@ class ClusterManager<Clustering, C : TedClusterItem, RealMarker, Marker : TedMar
     private var previousCameraPosition: TedCameraPosition? = null
     private var mClusterTask: ClusterTask = ClusterTask()
     private var mClusterCoroutine: Job = Job()
+    private val clusterEndedListener = builder.clusterEndedListener
 
     var algorithm: Algorithm<C>?
         get() = mAlgorithm
@@ -118,6 +119,7 @@ class ClusterManager<Clustering, C : TedClusterItem, RealMarker, Marker : TedMar
             mClusterCoroutine = CoroutineScope(Dispatchers.IO).launch {
                 val zoom = map.getCameraPosition().zoom
                 execute(zoom)
+                clusterEndedListener?.invoke()
             }
         }
 
