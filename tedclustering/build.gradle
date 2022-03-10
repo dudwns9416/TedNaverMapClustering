@@ -27,4 +27,3 @@ dependencies {
     implementation deps.coroutine.core
 }
 
-apply plugin: "com.vanniktech.maven.publish"
